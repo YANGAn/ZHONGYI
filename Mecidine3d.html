@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>十二经脉 · 三维走向图</title>
+<style>
+:root{
+  --bg:#14181c; --panel:#1b2126; --panel2:#20272d; --text:#e8e4da; --muted:#8b939b; --line:#333c43;
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Songti SC","Noto Serif SC",serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column}
+header{padding:14px 18px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
+h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.02em}
+p.sub{margin:4px 0 0;color:var(--muted);font-size:12.5px;font-family:-apple-system,"PingFang SC",sans-serif}
+#main{flex:1;display:flex;min-height:0;flex-direction:row}
+#canvas-wrap{flex:1;position:relative;min-height:0}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#hint{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:var(--muted);font-family:-apple-system,"PingFang SC",sans-serif;background:rgba(20,24,28,.6);padding:4px 8px;border-radius:6px}
+#error-msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#F44336;font-size:16px;text-align:center;display:none;width:80%;line-height:1.5;font-family:sans-serif}
+#sidebar{width:270px;flex:0 0 auto;background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:12px 12px 20px;font-family:-apple-system,"PingFang SC",sans-serif}
+.grp-title{font-size:11px;color:var(--muted);margin:14px 4px 6px;font-family:"Songti SC",serif}
+.grp-title:first-child{margin-top:2px}
+.row{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .15s}
+.row:hover{background:var(--panel2)}
+.row.off{opacity:.4}
+.dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.nm{font-size:13.5px}
+.ab{font-size:11px;color:var(--muted);margin-left:auto}
+.ctrl{display:flex;gap:8px;padding:2px 4px 10px}
+.ctrl button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:7px 0;border-radius:7px;font-size:12px;font-family:inherit;cursor:pointer}
+.ctrl button:active{background:var(--line)}
+footer{padding:6px 18px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line);font-family:-apple-system,"PingFang SC",sans-serif;flex:0 0 auto}
+@media (max-width:680px){
+  #main{flex-direction:column}
+  #sidebar{width:100%;flex:0 0 auto;max-height:34%;border-left:none;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header><h1>十二经脉 · 位置与走向</h1><p class="sub">拖动旋转 · 双指或滚轮缩放 · 点击右侧经脉名可单独显示</p></header>
+<div id="main">
+  <div id="canvas-wrap">
+    <div id="hint">示意简化模型，仅供记忆学习，非解剖精确图</div>
+    <div id="error-msg"></div>
+  </div>
+  <div id="sidebar">
+    <div class="ctrl"><button id="btnAll">全部显示</button><button id="btnNone">全部隐藏</button></div>
+    <div id="list"></div>
+  </div>
+</div>
+<footer>十二经脉三维示意 · 阴经行于肢体内侧，阳经行于外侧</footer>
+</div>
+
+<!-- 动态加载 Three.js，主备切换 -->
+<script>
+(function() {
+    var loaded = false;
+    function initThree() {
+        if (loaded || typeof THREE === 'undefined') return;
+        loaded = true;
+        
+        // ========== 这里开始是核心代码 ==========
+        const M=[
+        {id:"LU",cn:"手太阴肺经",grp:"手三阴",color:0xE8B4A0,pts:[[1.0,14.5,1.4],[2.3,16.0,0.6],[3.7,12.3,1.0],[4.6,8.6,1.3],[4.9,6.8,1.4]]},
+        {id:"PC",cn:"手厥阴心包经",grp:"手三阴",color:0x6B8FA3,pts:[[0.8,14.3,1.6],[2.3,16.0,0.2],[3.7,12.3,0.6],[4.6,8.6,0.9],[4.9,6.8,1.0]]},
+        {id:"HT",cn:"手少阴心经",grp:"手三阴",color:0xC0596B,pts:[[1.0,15.0,0.0],[2.3,16.0,-0.2],[3.7,12.3,0.2],[4.6,8.6,0.5],[4.9,6.8,0.6]]},
+        {id:"LI",cn:"手阳明大肠经",grp:"手三阳",color:0xD4956B,pts:[[5.2,6.8,1.4],[4.9,8.6,1.3],[4.3,12.3,1.4],[2.9,16.0,0.6],[1.6,17.0,0.6],[0.5,18.2,1.8]]},
+        {id:"SJ",cn:"手少阳三焦经",grp:"手三阳",color:0x7FA093,pts:[[5.2,6.8,1.0],[4.9,8.6,0.9],[4.3,12.3,1.0],[2.9,16.0,0.2],[1.8,17.3,0.2],[2.4,18.2,0.1],[1.0,18.9,1.2]]},
+        {id:"SI",cn:"手太阳小肠经",grp:"手三阳",color:0x9C5B7A,pts:[[5.2,6.8,0.6],[4.9,8.6,0.5],[4.3,12.3,0.6],[2.9,16.0,-0.2],[1.6,17.0,-0.3],[2.3,18.0,-0.2],[2.0,18.3,0.3]]},
+        {id:"ST",cn:"足阳明胃经",grp:"足三阳",color:0xD9A441,pts:[[0.5,18.3,1.9],[0.3,17.0,1.3],[0.6,15.0,1.6],[0.7,11.0,1.5],[1.7,8.0,0.5],[1.7,4.0,1.0],[1.6,0.9,0.9],[1.6,0.3,2.2]]},
+        {id:"GB",cn:"足少阳胆经",grp:"足三阳",color:0x6FA05B,pts:[[1.9,18.5,0.6],[2.5,18.7,-0.3],[1.8,19.0,-0.7],[1.4,17.0,-0.6],[2.0,13.0,0.0],[1.9,9.0,0.1],[1.6,8.0,0.0],[1.7,4.0,0.4],[1.7,0.9,0.3],[1.6,0.3,2.0]]},
+        {id:"BL",cn:"足太阳膀胱经",grp:"足三阳",color:0x4A7A9C,pts:[[0.3,18.6,1.5],[0,20.3,0],[0,17.0,-0.9],[0.9,13.0,-1.6],[0.9,9.0,-1.4],[1.6,7.5,-1.0],[1.7,4.0,-0.2],[1.7,0.9,-0.3],[1.4,0.3,1.6]]},
+        {id:"SP",cn:"足太阴脾经",grp:"足三阴",color:0xB8A339,pts:[[1.1,0.3,1.9],[1.1,0.9,-0.1],[1.1,4.0,-0.2],[1.0,8.0,-0.4],[1.0,11.0,1.0],[1.6,15.6,0.8]]},
+        {id:"LR",cn:"足厥阴肝经",grp:"足三阴",color:0x8FA83E,pts:[[1.2,0.3,1.5],[1.15,0.9,-0.25],[1.15,4.0,-0.35],[1.05,8.0,-0.55],[1.3,12.5,0.6]]},
+        {id:"KI",cn:"足少阴肾经",grp:"足三阴",color:0x3F5F8A,pts:[[1.2,0.15,0.0],[1.2,0.9,-0.4],[1.2,4.0,-0.5],[1.1,8.0,-0.7],[0.6,10.0,0.9],[0.9,14.8,1.0]]}
+        ];
+        const GROUPS=["手三阴","手三阳","足三阳","足三阴"];
+        const scene=new THREE.Scene();
+        scene.background=new THREE.Color(0x14181c);
+        const wrap=document.getElementById('canvas-wrap');
+        const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
+        const renderer=new THREE.WebGLRenderer({antialias:true});
+        wrap.appendChild(renderer.domElement);
+        function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+        window.addEventListener('resize',resize);
+        scene.add(new THREE.AmbientLight(0xffffff,0.65));
+        const dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(6,20,10);scene.add(dl);
+        const dl2=new THREE.DirectionalLight(0xffffff,0.35);dl2.position.set(-8,5,-10);scene.add(dl2);
+        const target=new THREE.Vector3(0,10,0);
+        let theta=0.6,phi=1.25,radius=32;
+        function updateCam(){
+          camera.position.set(target.x+radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),target.z+radius*Math.sin(phi)*Math.cos(theta));
+          camera.lookAt(target);
+        }
+        updateCam();
+        
+        const bodyMat=new THREE.MeshStandardMaterial({color:0x9aa4ac,transparent:true,opacity:0.16,roughness:0.9});
+        const body=new THREE.Group();
+        function limb(p1,p2,r1,r2){
+          const a=new THREE.Vector3(...p1),b=new THREE.Vector3(...p2);
+          const dir=new THREE.Vector3().subVectors(b,a);const len=dir.length();
+          const geo=new THREE.CylinderGeometry(r2,r1,len,14);
+          const mesh=new THREE.Mesh(geo,bodyMat);
+          const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5);
+          mesh.position.copy(mid);
+          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+          return mesh;
+        }
+        
+        // 头部
+        body.add(new THREE.Mesh(new THREE.SphereGeometry(1.5,20,16),bodyMat).translateOnAxis(new THREE.Vector3(0,1,0),18.3));
+        // 躯干
+        body.add(limb([0,17,0],[0,10.5,0],2.0,1.9));
+        body.add(limb([0,10.5,0],[0,7.5,0],1.9,1.6));
+        
+        // 四肢 (修正了手部球体的位置代码)
+        [1,-1].forEach(s=>{
+          // 手臂
+          body.add(limb([s*2.6,16,0.2],[s*4.0,12.3,0.6],0.55,0.45));
+          body.add(limb([s*4.0,12.3,0.6],[s*4.9,8.6,0.9],0.42,0.35));
+          // 腿部
+          body.add(limb([s*1.3,8.0,0],[s*1.4,4.0,0.4],0.85,0.6));
+          body.add(limb([s*1.4,4.0,0.4],[s*1.4,0.9,0.3],0.55,0.4));
+          
+          // 修正手部球体（之前的代码有语法问题）
+          const handGeo = new THREE.SphereGeometry(0.4, 10, 10);
+          const handMesh = new THREE.Mesh(handGeo, bodyMat);
+          handMesh.position.set(s * 4.95, 6.8, 1.0); // 给手部一个合理的坐标
+          body.add(handMesh);
+        });
+        scene.add(body);
+        
+        const groupsByM={};
+        M.forEach(m=>{
+          const pts=m.pts.map(p=>new THREE.Vector3(...p));
+          const g=new THREE.Group();
+          [1,-1].forEach(s=>{
+            const spts=pts.map(p=>new THREE.Vector3(p.x*s,p.y,p.z));
+            const curve=new THREE.CatmullRomCurve3(spts);
+            const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,40,0.12,8,false),new THREE.MeshStandardMaterial({color:m.color,emissive:m.color,emissiveIntensity:0.35,roughness:0.5}));
+            g.add(tube);
+          });
+          scene.add(g);
+          groupsByM[m.id]=g;
+        });
+        
+        // 交互逻辑
+        let dragging=false,lx=0,ly=0;
+        function down(x,y){dragging=true;lx=x;ly=y;}
+        function move(x,y){if(!dragging)return;theta-=(x-lx)*0.006;phi=Math.max(0.35,Math.min(2.6,phi-(y-ly)*0.006));lx=x;ly=y;updateCam();}
+        function up(){dragging=false;}
+        renderer.domElement.addEventListener('mousedown',e=>down(e.clientX,e.clientY));
+        window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+        window.addEventListener('mouseup',up);
+        renderer.domElement.addEventListener('touchstart',e=>{const t=e.touches[0];down(t.clientX,t.clientY);},{passive:true});
+        renderer.domElement.addEventListener('touchmove',e=>{const t=e.touches[0];move(t.clientX,t.clientY);},{passive:true});
+        renderer.domElement.addEventListener('touchend',up);
+        renderer.domElement.addEventListener('wheel',e=>{radius=Math.max(14,Math.min(60,radius+e.deltaY*0.03));updateCam();e.preventDefault();},{passive:false});
+        
+        // 侧边栏
+        const list=document.getElementById('list');
+        GROUPS.forEach(grp=>{
+          const h=document.createElement('div');h.className='grp-title';h.textContent=grp;list.appendChild(h);
+          M.filter(m=>m.grp===grp).forEach(m=>{
+            const row=document.createElement('div');row.className='row';row.dataset.id=m.id;
+            const hex='#'+m.color.toString(16).padStart(6,'0');
+            row.innerHTML=`<span class="dot" style="background:${hex}"></span><span class="nm">${m.cn}</span><span class="ab">${m.id}</span>`;
+            row.addEventListener('click',()=>{
+              const g=groupsByM[m.id];g.visible=!g.visible;row.classList.toggle('off',!g.visible);
+            });
+            list.appendChild(row);
+          });
+        });
+        document.getElementById('btnAll').onclick=()=>{M.forEach(m=>{groupsByM[m.id].visible=true;});document.querySelectorAll('.row').forEach(r=>r.classList.remove('off'));};
+        document.getElementById('btnNone').onclick=()=>{M.forEach(m=>{groupsByM[m.id].visible=false;});document.querySelectorAll('.row').forEach(r=>r.classList.add('off'));};
+        
+        resize();
+        (function loop(){requestAnimationFrame(loop);renderer.render(scene,camera);})();
+        // ========== 核心代码结束 ==========
+    }
+
+    // 动态加载器
+    function loadScript(url, onSuccess, onError) {
+        var script = document.createElement('script');
+        script.src = url;
+        script.onload = onSuccess;
+        script.onerror = onError;
+        document.head.appendChild(script);
+    }
+
+    // 主源：国内BootCDN
+    loadScript('https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js', 
+        function() {
+            initThree();
+        },
+        function() {
+            // 如果主源失败，尝试备用源
+            console.warn('主 CDN 失败，尝试备用...');
+            loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
+                function() { initThree(); },
+                function() {
+                    // 彻底失败
+                    document.getElementById('error-msg').style.display = 'block';
+                    document.getElementById('error-msg').innerHTML = '❌ 无法加载 3D 引擎库 (Three.js)。<br><br>请检查您的网络连接，或尝试切换到电脑浏览器打开。';
+                }
+            );
+        }
+    );
+})();
+</script>
+</body>
+</html>

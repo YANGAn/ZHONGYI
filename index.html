@@ -1,494 +1,130 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>五行藏象系统 · 双模式挑战</title>
-    <style>
-        body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            background-color: #f4f1ea;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-        .box {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 450px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        h1 {
-            font-size: 18px;
-            color: #5a4a3a;
-            margin-top: 0;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-        }
-        
-        /* 模式切换 */
-        .mode-switch {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .mode-btn {
-            padding: 8px 15px;
-            border: 1px solid #ccc;
-            background: #fff;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #666;
-            cursor: pointer;
-        }
-        .mode-btn.active {
-            background: #5a4a3a;
-            color: #fff;
-            border-color: #5a4a3a;
-        }
-
-        .score {
-            font-size: 15px;
-            color: #8c7a6b;
-            margin-bottom: 15px;
-        }
-
-        /* 模式一：属性分类 */
-        .q-box {
-            background-color: #f9f6f0;
-            padding: 20px 10px;
-            border-radius: 8px;
-            border: 1px solid #e0d6c8;
-            margin-bottom: 20px;
-            min-height: 60px;
-        }
-        .q-label { font-size: 14px; color: #999; margin-bottom: 8px; }
-        .q-text { font-size: 28px; font-weight: bold; color: #3e3226; }
-        
-        .btns { display: flex; justify-content: space-between; gap: 5px; }
-        .btn {
-            flex: 1; padding: 12px 0; font-size: 16px; font-weight: bold;
-            color: #fff; border: none; border-radius: 6px; cursor: pointer;
-        }
-        .btn:active { opacity: 0.8; }
-        .btn:disabled { opacity: 0.5; }
-        .mu { background-color: #4CAF50; }
-        .huo { background-color: #F44336; }
-        .tu { background-color: #FFC107; color: #333; }
-        .jin { background-color: #FFFFFF; color: #000000; border: 1px solid #ccc; }
-        .shui { background-color: #000000; color: #FFFFFF; }
-
-        /* 模式二：治法选择题 */
-        .rule-box {
-            background-color: #fff9e6;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed #f0c040;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .rule-title { font-size: 15px; font-weight: bold; color: #b88a00; margin-bottom: 5px; }
-        .rule-desc { font-size: 13px; color: #666; margin-bottom: 0; line-height: 1.4; }
-        
-        .therapy-text {
-            font-size: 18px;
-            font-weight: bold;
-            color: #3e3226;
-            margin-bottom: 20px;
-            line-height: 1.6;
-            text-align: left;
-            background: #fdfaf5;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #5a4a3a;
-            min-height: 50px;
-        }
-        .therapy-text .blank {
-            display: inline-block;
-            width: 80px;
-            border-bottom: 2px solid #5a4a3a;
-            text-align: center;
-            color: #999;
-            font-weight: normal;
-            margin: 0 5px;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-        .btn-option {
-            padding: 12px 5px;
-            font-size: 13px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            cursor: pointer;
-            color: #333;
-            transition: all 0.2s;
-            font-family: inherit;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .btn-option:active { background: #eee; }
-        .btn-option:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        .msg { height: 25px; margin-top: 15px; font-size: 16px; font-weight: bold; }
-        .green { color: #4CAF50; }
-        .red { color: #F44336; }
-        
-        .restart {
-            margin-top: 15px; padding: 10px 20px;
-            background: #5a4a3a; color: white; border: none;
-            border-radius: 5px; font-size: 15px; cursor: pointer;
-        }
-
-        /* 错题本 */
-        .review-box {
-            display: none; text-align: left; margin-top: 20px;
-            border-top: 2px dashed #e0d6c8; padding-top: 15px;
-        }
-        .review-title { font-size: 16px; font-weight: bold; color: #5a4a3a; margin-bottom: 10px; text-align: center; }
-        .review-item {
-            background-color: #fff5f5; border-left: 4px solid #F44336;
-            padding: 8px 10px; margin-bottom: 8px; font-size: 13px; border-radius: 0 4px 4px 0;
-        }
-        .review-item .wrong { color: #F44336; font-weight: bold; }
-        .review-item .right { color: #4CAF50; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>中医学习 · 总入口</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        background-color: #f4f1ea;
+        margin: 0;
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .header h1 {
+        font-size: 26px;
+        color: #3e3226;
+        margin: 0 0 10px 0;
+        letter-spacing: 2px;
+    }
+    .header p {
+        font-size: 14px;
+        color: #8c7a6b;
+        margin: 0;
+    }
+    .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        max-width: 400px;
+    }
+    .card {
+        display: block;
+        text-decoration: none;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 25px 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 6px solid #5a4a3a;
+        color: #3e3226;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    .card:active {
+        transform: translateY(0);
+    }
+    .card-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+        display: block;
+    }
+    .card-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .card-desc {
+        font-size: 13px;
+        color: #8c7a6b;
+        line-height: 1.5;
+    }
+    .card.wuxing {
+        border-left-color: #4CAF50;
+    }
+    .card.meridian {
+        border-left-color: #4A7A9C;
+    }
+    .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #b0a89c;
+        text-align: center;
+    }
+    /* 手机优化 */
+    @media (max-width: 400px) {
+        .header h1 { font-size: 22px; }
+        .card { padding: 20px 16px; }
+    }
+</style>
 </head>
 <body>
 
-<div class="box" id="main-box">
-    <h1>天人一体藏象系统 · 五行挑战</h1>
-    
-    <div class="mode-switch">
-        <button class="mode-btn active" id="btn-mode1" onclick="switchMode(1)">属性分类</button>
-        <button class="mode-btn" id="btn-mode2" onclick="switchMode(2)">治法填空</button>
-    </div>
-
-    <div class="score">进度: <span id="progress">0</span> / <span id="total-limit">10</span> | 得分: <span id="score">0</span></div>
-
-    <!-- 模式一：属性分类 -->
-    <div id="game-area-1">
-        <div class="q-box">
-            <div class="q-label" id="q-category">正在加载...</div>
-            <div class="q-text" id="q-text">...</div>
-        </div>
-        <div class="btns">
-            <button class="btn mu" onclick="answerClassify('木')">木</button>
-            <button class="btn huo" onclick="answerClassify('火')">火</button>
-            <button class="btn tu" onclick="answerClassify('土')">土</button>
-            <button class="btn jin" onclick="answerClassify('金')">金</button>
-            <button class="btn shui" onclick="answerClassify('水')">水</button>
-        </div>
-        <div class="msg" id="msg-1"></div>
-    </div>
-
-    <!-- 模式二：治法选择 -->
-    <div id="game-area-2" style="display: none;">
-        <div class="rule-box">
-            <div class="rule-title">📜 治则原文</div>
-            <div class="rule-desc">“虚则补其母，实则泻其子” / “抑强扶弱”</div>
-        </div>
-        
-        <div class="therapy-text" id="q-target">
-            <!-- JS 动态填充 -->
-        </div>
-
-        <div class="options-grid" id="options-container">
-            <!-- JS 动态生成 -->
-        </div>
-        
-        <div class="msg" id="msg-2"></div>
-    </div>
-
-    <!-- 结果与错题区 -->
-    <div id="result-area" style="display: none;">
-        <h2 id="final-score-text" style="color:#5a4a3a;">游戏结束</h2>
-        <div class="review-box" id="review-box">
-            <div class="review-title">📝 错题回顾</div>
-            <div id="review-list"></div>
-        </div>
-    </div>
-
-    <button class="restart" id="restart-btn" onclick="startGame()" style="display: none;">重新挑战</button>
+<div class="header">
+    <h1>中医学习 · 工具合集</h1>
+    <p>点击下方卡片进入对应模块</p>
 </div>
 
-<script type="text/javascript">
-    // 数据结构 (分类游戏用)
-    var rawData = {
-        '木': ['角', '酸', '青', '生', '风', '东', '春', '肝', '胆', '目', '筋', '怒', '泪', '弦'],
-        '火': ['徵', '苦', '赤', '长', '暑', '南', '夏', '心', '小肠', '舌', '脉', '喜', '汗', '洪'],
-        '土': ['宫', '甘', '黄', '化', '湿', '中', '长夏', '脾', '胃', '口', '肉', '思', '涎', '缓'],
-        '金': ['商', '辛', '白', '收', '燥', '西', '秋', '肺', '大肠', '鼻', '皮', '悲', '涕', '浮'],
-        '水': ['羽', '咸', '黑', '藏', '寒', '北', '冬', '肾', '膀胱', '耳', '骨', '恐', '唾', '沉']
-    };
-    var categories = ['五音', '五味', '五色', '五化', '五气', '五方', '五季', '五脏', '五腑', '五官', '五体', '五志', '五液', '五脉'];
+<div class="cards">
+    <!-- 卡片1：五行挑战 -->
+    <a class="card wuxing" href="wuxing.html">
+        <span class="card-icon">☯️</span>
+        <div class="card-title">五行藏象系统 · 双模式挑战</div>
+        <div class="card-desc">
+            · 属性分类：10 题快速闯关，考察五行归类<br>
+            · 治法填空：根据病机选治法，含相生相克<br>
+            · 错题回顾：答错自动记录，方便复习
+        </div>
+    </a>
 
-    // 治法选择题题库（包含图片中的生克治法）
-    var therapyBank = [
-        // ---- 相生治法（虚则补其母） ----
-        { 
-            question: '肝虚证，治宜：( )', 
-            answer: '滋水涵木法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        { 
-            question: '肾虚脾弱，治宜：( )', 
-            answer: '益火补土法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        { 
-            question: '肺脾气虚，治宜：( )', 
-            answer: '培土生金法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        { 
-            question: '肺肾阴虚，治宜：( )', 
-            answer: '金水相生法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        // ---- 相克治法（抑强扶弱） ----
-        { 
-            question: '肝强脾弱（木旺乘土），治宜：( )', 
-            answer: '抑木扶土法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        },
-        { 
-            question: '脾虚水泛（土不制水），治宜：( )', 
-            answer: '培土制水法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        },
-        { 
-            question: '肝火犯肺（木火刑金），治宜：( )', 
-            answer: '佐金平木法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        },
-        { 
-            question: '心火亢盛，肾水不足（心肾不交），治宜：( )', 
-            answer: '泻南补北法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        }
-    ];
+    <!-- 卡片2：十二经脉三维图 -->
+    <a class="card meridian" href="Mecidine3d.html">
+        <span class="card-icon">🩺</span>
+        <div class="card-title">十二经脉 · 三维走向图</div>
+        <div class="card-desc">
+            · 3D 人体模型：三焦分段 + 四肢轮廓<br>
+            · 十二经脉：阴经内侧，阳经外侧<br>
+            · 交互操作：拖动旋转、缩放、单独显示
+        </div>
+    </a>
+</div>
 
-    var currentMode = 1;
-    var pool = [];
-    var currentQuestion = null;
-    var score = 0;
-    var total = 0;
-    var lock = false;
-    var wrongList = [];
-
-    function switchMode(mode) {
-        currentMode = mode;
-        document.getElementById('btn-mode1').className = (mode === 1) ? 'mode-btn active' : 'mode-btn';
-        document.getElementById('btn-mode2').className = (mode === 2) ? 'mode-btn active' : 'mode-btn';
-        
-        if (mode === 1) {
-            document.getElementById('game-area-1').style.display = 'block';
-            document.getElementById('game-area-2').style.display = 'none';
-            document.getElementById('total-limit').innerText = '10';
-        } else {
-            document.getElementById('game-area-1').style.display = 'none';
-            document.getElementById('game-area-2').style.display = 'block';
-            document.getElementById('total-limit').innerText = '8'; // 目前题库是 8 题
-        }
-        startGame();
-    }
-
-    function startGame() {
-        pool = [];
-        score = 0;
-        total = 0;
-        lock = false;
-        wrongList = [];
-        
-        document.getElementById('result-area').style.display = 'none';
-        document.getElementById('restart-btn').style.display = 'none';
-        document.getElementById('progress').innerText = '0';
-        document.getElementById('score').innerText = '0';
-        document.getElementById('msg-1').innerText = '';
-        document.getElementById('msg-2').innerText = '';
-        document.getElementById('msg-1').className = 'msg';
-        document.getElementById('msg-2').className = 'msg';
-
-        if (currentMode === 1) {
-            var allQuestions = [];
-            for (var wuxing in rawData) {
-                if (rawData.hasOwnProperty(wuxing)) {
-                    var arr = rawData[wuxing];
-                    for (var i = 0; i < arr.length; i++) {
-                        if (arr[i] !== wuxing) {
-                            allQuestions.push({ text: arr[i], ans: wuxing, cat: categories[i] });
-                        }
-                    }
-                }
-            }
-            allQuestions.sort(function() { return Math.random() - 0.5; });
-            pool = allQuestions.slice(0, 10);
-        } else {
-            // 治法题库：打乱题目顺序和选项顺序
-            pool = JSON.parse(JSON.stringify(therapyBank)); 
-            pool.sort(function() { return Math.random() - 0.5; });
-            pool.forEach(function(item) {
-                item.options.sort(function() { return Math.random() - 0.5; });
-            });
-        }
-        
-        nextQuestion();
-    }
-
-    function nextQuestion() {
-        if (pool.length === 0) {
-            showResult();
-            return;
-        }
-        
-        lock = false;
-        currentQuestion = pool.pop();
-        document.getElementById('msg-1').innerText = '';
-        document.getElementById('msg-2').innerText = '';
-        
-        if (currentMode === 1) {
-            document.getElementById('q-category').innerText = '考察项目：' + currentQuestion.cat;
-            document.getElementById('q-text').innerText = currentQuestion.text;
-            
-            var btns = document.querySelectorAll('#game-area-1 .btn');
-            for (var i = 0; i < btns.length; i++) btns[i].disabled = false;
-        } else {
-            // 治法模式
-            var displayText = currentQuestion.question.replace('( )', '<span class="blank">?</span>');
-            document.getElementById('q-target').innerHTML = displayText;
-            
-            var optContainer = document.getElementById('options-container');
-            optContainer.innerHTML = '';
-            for (var j = 0; j < currentQuestion.options.length; j++) {
-                var btn = document.createElement('button');
-                btn.className = 'btn-option';
-                btn.innerText = currentQuestion.options[j];
-                (function(selectedOption) {
-                    btn.onclick = function() { submitTherapy(selectedOption); };
-                })(currentQuestion.options[j]);
-                optContainer.appendChild(btn);
-            }
-        }
-    }
-
-    function answerClassify(choice) {
-        if (lock || !currentQuestion) return;
-        lock = true;
-        
-        total++;
-        document.getElementById('progress').innerText = total;
-        
-        var msg = document.getElementById('msg-1');
-        var isCorrect = (choice === currentQuestion.ans);
-        
-        if (isCorrect) {
-            score++;
-            document.getElementById('score').innerText = score;
-            msg.innerText = '✅ 正确！';
-            msg.className = 'msg green';
-        } else {
-            msg.innerText = '❌ 错误，正确答案是: ' + currentQuestion.ans;
-            msg.className = 'msg red';
-            wrongList.push({
-                text: currentQuestion.text,
-                cat: currentQuestion.cat,
-                userAns: choice,
-                correctAns: currentQuestion.ans
-            });
-        }
-        
-        var btns = document.querySelectorAll('#game-area-1 .btn');
-        for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
-        
-        setTimeout(nextQuestion, 800);
-    }
-
-    function submitTherapy(selected) {
-        if (lock || !currentQuestion) return;
-        lock = true;
-        
-        total++;
-        document.getElementById('progress').innerText = total;
-        
-        var msg = document.getElementById('msg-2');
-        var isCorrect = (selected === currentQuestion.answer);
-        
-        var btns = document.querySelectorAll('#options-container .btn-option');
-        for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
-        
-        if (isCorrect) {
-            score++;
-            document.getElementById('score').innerText = score;
-            msg.innerText = '✅ 正确！' + currentQuestion.answer;
-            msg.className = 'msg green';
-        } else {
-            msg.innerText = '❌ 错误，正确答案是: ' + currentQuestion.answer;
-            msg.className = 'msg red';
-            wrongList.push({
-                text: currentQuestion.question, 
-                cat: '治法',
-                userAns: selected,
-                correctAns: currentQuestion.answer
-            });
-        }
-        
-        setTimeout(nextQuestion, 1500);
-    }
-
-    function showResult() {
-        document.getElementById('game-area-1').style.display = 'none';
-        document.getElementById('game-area-2').style.display = 'none';
-        document.getElementById('result-area').style.display = 'block';
-        document.getElementById('restart-btn').style.display = 'inline-block';
-        
-        var rate = total > 0 ? Math.round((score / total) * 100) : 0;
-        var finalScoreText = document.getElementById('final-score-text');
-        
-        if (wrongList.length === 0) {
-            finalScoreText.innerHTML = '🎉 太棒了！满分 ' + score + ' / ' + total + '！<br>您已完全掌握！';
-            document.getElementById('review-box').style.display = 'none';
-        } else {
-            finalScoreText.innerHTML = '挑战结束！<br>得分: ' + score + ' / ' + total + ' | 正确率: ' + rate + '%';
-            document.getElementById('review-box').style.display = 'block';
-            renderWrongList();
-        }
-    }
-
-    function renderWrongList() {
-        var listContainer = document.getElementById('review-list');
-        listContainer.innerHTML = '';
-        
-        for (var i = 0; i < wrongList.length; i++) {
-            var item = wrongList[i];
-            var div = document.createElement('div');
-            div.className = 'review-item';
-            div.innerHTML = '【' + item.cat + '】' + item.text + 
-                            ' —— 您的答案: <span class="wrong">' + item.userAns + '</span>' + 
-                            '，正确答案: <span class="right">' + item.correctAns + '</span>';
-            listContainer.appendChild(div);
-        }
-    }
-
-    // 立即启动
-    startGame();
-</script>
+<div class="footer">
+    仅供个人学习使用 · 非解剖精确图
+</div>
 
 </body>
 </html>
