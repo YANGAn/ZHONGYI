@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>十二经脉 · 三维走向图</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#14181c; --panel:#1b2126; --panel2:#20272d; --text:#e8e4da; --muted:#8b939b; --line:#333c43;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Songti SC","Noto Serif SC",serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column}
+header{padding:14px 18px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
+h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.02em}
+p.sub{margin:4px 0 0;color:var(--muted);font-size:12.5px;font-family:-apple-system,"PingFang SC",sans-serif}
+#main{flex:1;display:flex;min-height:0;flex-direction:row}
+#canvas-wrap{flex:1;position:relative;min-height:0}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#hint{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:var(--muted);font-family:-apple-system,"PingFang SC",sans-serif;background:rgba(20,24,28,.6);padding:4px 8px;border-radius:6px}
+#sidebar{width:270px;flex:0 0 auto;background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:12px 12px 20px;font-family:-apple-system,"PingFang SC",sans-serif}
+.grp-title{font-size:11px;color:var(--muted);margin:14px 4px 6px;font-family:"Songti SC",serif}
+.grp-title:first-child{margin-top:2px}
+.row{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;transition:background .15s}
+.row:hover{background:var(--panel2)}
+.row.off{opacity:.4}
+.dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;cursor:pointer}
+.nm{font-size:13.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.ab{font-size:11px;color:var(--muted);cursor:pointer}
+.chev{width:22px;height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;transition:transform .15s}
+.chev:hover{background:var(--line);color:var(--text)}
+.chev.open{transform:rotate(90deg);color:var(--text)}
+#cols{display:flex;align-items:flex-start;gap:0;min-height:0}
+#menu{flex:1;min-width:0;transition:flex .18s}
+#detail{flex:0 0 0;width:0;overflow:hidden;transition:flex .18s;padding-left:0}
+#sidebar.split #menu{flex:0 0 118px}
+#sidebar.split #menu .nm{display:none}
+#sidebar.split #menu .row{padding:7px 4px}
+#sidebar.split #detail{flex:1 1 auto;width:auto;padding-left:10px;border-left:1px solid var(--line);max-height:70vh;overflow-y:auto}
+.d-head{display:flex;align-items:center;gap:8px;margin:2px 0 8px}
+.d-head .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.d-head h3{margin:0;font-size:14px;flex:1;min-width:0}
+.d-close{cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:2px 6px;border-radius:6px}
+.d-close:hover{background:var(--panel2);color:var(--text)}
+#detail ol{margin:0;padding-left:18px}
+#detail li{font-size:12.5px;line-height:2;color:var(--text)}
+#detail li::marker{color:var(--muted);font-size:10.5px}
+.ctrl{display:flex;gap:8px;padding:2px 4px 10px}
+.ctrl button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:7px 0;border-radius:7px;font-size:12px;font-family:inherit;cursor:pointer}
+.ctrl button:active{background:var(--line)}
+footer{padding:6px 18px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line);font-family:-apple-system,"PingFang SC",sans-serif;flex:0 0 auto;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+@media (max-width:680px){
+  #main{flex-direction:column}
+  #sidebar{width:100%;flex:0 0 auto;max-height:34%;border-left:none;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header><h1>十二经脉 · 位置与走向</h1><p class="sub">拖动旋转 · 双指或滚轮缩放 · 点击 ▸ 单独显示该经，右侧展开腧穴列表</p></header>
+<div id="main">
+  <div id="canvas-wrap"><div id="hint">示意简化模型，穴位按顺序编号沿路径均匀标出，非精确解剖定位</div></div>
+  <div id="sidebar">
+    <div class="ctrl"><button id="btnAll">全部显示</button><button id="btnNone">全部隐藏</button></div>
+    <div id="cols">
+      <div id="menu"></div>
+      <div id="detail"></div>
+    </div>
+  </div>
+</div>
+<footer>十二经脉三维示意 · 阴经行于肢体内侧，阳经行于外侧</footer>
+</div>
+<script>
+const M=[
+{id:"LU",cn:"手太阴肺经",grp:"手三阴",color:0xE8B4A0,pts:[[1.0,14.5,1.4],[2.3,16.0,0.6],[3.7,12.3,1.0],[4.6,8.6,1.3],[4.9,6.8,1.4]],names:"中府 云门 天府 侠白 尺泽 孔最 列缺 经渠 太渊 鱼际 少商".split(" ")},
+{id:"PC",cn:"手厥阴心包经",grp:"手三阴",color:0x6B8FA3,pts:[[0.8,14.3,1.6],[2.3,16.0,0.2],[3.7,12.3,0.6],[4.6,8.6,0.9],[4.9,6.8,1.0]],names:"天池 天泉 曲泽 郄门 间使 内关 大陵 劳宫 中冲".split(" ")},
+{id:"HT",cn:"手少阴心经",grp:"手三阴",color:0xC0596B,pts:[[1.0,15.0,0.0],[2.3,16.0,-0.2],[3.7,12.3,0.2],[4.6,8.6,0.5],[4.9,6.8,0.6]],names:"极泉 青灵 少海 灵道 通里 阴郄 神门 少府 少冲".split(" ")},
+{id:"LI",cn:"手阳明大肠经",grp:"手三阳",color:0xD4956B,pts:[[5.2,6.8,1.4],[4.9,8.6,1.3],[4.3,12.3,1.4],[2.9,16.0,0.6],[1.6,17.0,0.6],[0.5,18.2,1.8]],names:"商阳 二间 三间 合谷 阳溪 偏历 温溜 下廉 上廉 手三里 曲池 肘髎 手五里 臂臑 肩髃 巨骨 天鼎 扶突 口禾髎 迎香".split(" ")},
+{id:"SJ",cn:"手少阳三焦经",grp:"手三阳",color:0x7FA093,pts:[[5.2,6.8,1.0],[4.9,8.6,0.9],[4.3,12.3,1.0],[2.9,16.0,0.2],[1.8,17.3,0.2],[2.4,18.2,0.1],[1.0,18.9,1.2]],names:"关冲 液门 中渚 阳池 外关 支沟 会宗 三阳络 四渎 天井 清冷渊 消泺 臑会 肩髎 天髎 天牖 翳风 瘈脉 颅息 角孙 耳门 耳和髎 丝竹空".split(" ")},
+{id:"SI",cn:"手太阳小肠经",grp:"手三阳",color:0x9C5B7A,pts:[[5.2,6.8,0.6],[4.9,8.6,0.5],[4.3,12.3,0.6],[2.9,16.0,-0.2],[1.6,17.0,-0.3],[2.3,18.0,-0.2],[2.0,18.3,0.3]],names:"少泽 前谷 后溪 腕骨 阳谷 养老 支正 小海 肩贞 臑俞 天宗 秉风 曲垣 肩外俞 肩中俞 天窗 天容 颧髎 听宫".split(" ")},
+{id:"ST",cn:"足阳明胃经",grp:"足三阳",color:0xD9A441,pts:[[0.5,18.3,1.9],[0.3,17.0,1.3],[0.6,15.0,1.6],[0.7,11.0,1.5],[1.7,8.0,0.5],[1.7,4.0,1.0],[1.6,0.9,0.9],[1.6,0.3,2.2]],names:"承泣 四白 巨髎 地仓 大迎 颊车 下关 头维 人迎 水突 气舍 缺盆 气户 库房 屋翳 膺窗 乳中 乳根 不容 承满 梁门 关门 太乙 滑肉门 天枢 外陵 大巨 水道 归来 气冲 髀关 伏兔 阴市 梁丘 犊鼻 足三里 上巨虚 条口 下巨虚 丰隆 解溪 冲阳 陷谷 内庭 厉兑".split(" ")},
+{id:"GB",cn:"足少阳胆经",grp:"足三阳",color:0x6FA05B,pts:[[1.9,18.5,0.6],[2.5,18.7,-0.3],[1.8,19.0,-0.7],[1.4,17.0,-0.6],[2.0,13.0,0.0],[1.9,9.0,0.1],[1.6,8.0,0.0],[1.7,4.0,0.4],[1.7,0.9,0.3],[1.6,0.3,2.0]],names:"瞳子髎 听会 上关 颔厌 悬颅 悬厘 曲鬓 率谷 天冲 浮白 头窍阴 完骨 本神 阳白 头临泣 目窗 正营 承灵 脑空 风池 肩井 渊腋 辄筋 日月 京门 带脉 五枢 维道 居髎 环跳 风市 中渎 膝阳关 阳陵泉 阳交 外丘 光明 阳辅 悬钟 丘墟 足临泣 地五会 侠溪 足窍阴".split(" ")},
+{id:"BL",cn:"足太阳膀胱经",grp:"足三阳",color:0x4A7A9C,pts:[[0.3,18.6,1.5],[0,20.3,0],[0,17.0,-0.9],[0.9,13.0,-1.6],[0.9,9.0,-1.4],[1.6,7.5,-1.0],[1.7,4.0,-0.2],[1.7,0.9,-0.3],[1.4,0.3,1.6]],names:"睛明 攒竹 眉冲 曲差 五处 承光 通天 络却 玉枕 天柱 大杼 风门 肺俞 厥阴俞 心俞 督俞 膈俞 肝俞 胆俞 脾俞 胃俞 三焦俞 肾俞 气海俞 大肠俞 关元俞 小肠俞 膀胱俞 中膂俞 白环俞 上髎 次髎 中髎 下髎 会阳 承扶 殷门 浮郄 委阳 委中 附分 魄户 膏肓 神堂 譩譆 膈关 魂门 阳纲 意舍 胃仓 肓门 志室 胞肓 秩边 合阳 承筋 承山 飞扬 跗阳 昆仑 仆参 申脉 金门 京骨 束骨 足通谷 至阴".split(" ")},
+{id:"SP",cn:"足太阴脾经",grp:"足三阴",color:0xB8A339,pts:[[1.1,0.3,1.9],[1.1,0.9,-0.1],[1.1,4.0,-0.2],[1.0,8.0,-0.4],[1.0,11.0,1.0],[1.6,15.6,0.8]],names:"隐白 大都 太白 公孙 商丘 三阴交 漏谷 地机 阴陵泉 血海 箕门 冲门 府舍 腹结 大横 腹哀 食窦 天溪 胸乡 周荣 大包".split(" ")},
+{id:"LR",cn:"足厥阴肝经",grp:"足三阴",color:0x8FA83E,pts:[[1.2,0.3,1.5],[1.15,0.9,-0.25],[1.15,4.0,-0.35],[1.05,8.0,-0.55],[1.3,12.5,0.6]],names:"大敦 行间 太冲 中封 蠡沟 中都 膝关 曲泉 阴包 足五里 阴廉 急脉 章门 期门".split(" ")},
+{id:"KI",cn:"足少阴肾经",grp:"足三阴",color:0x3F5F8A,pts:[[1.2,0.15,0.0],[1.2,0.9,-0.4],[1.2,4.0,-0.5],[1.1,8.0,-0.7],[0.6,10.0,0.9],[0.9,14.8,1.0]],names:"涌泉 然谷 太溪 大钟 水泉 照海 复溜 交信 筑宾 阴谷 横骨 大赫 气穴 四满 中注 肓俞 商曲 石关 阴都 腹通谷 幽门 步廊 神封 灵墟 神藏 彧中 俞府".split(" ")}
+];
+const GROUPS=["手三阴","手三阳","足三阳","足三阴"];
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x14181c);
+const wrap=document.getElementById('canvas-wrap');
+const camera=new THREE.PerspectiveCamera(42,1,0.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+wrap.appendChild(renderer.domElement);
+function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+window.addEventListener('resize',resize);
+scene.add(new THREE.AmbientLight(0xffffff,0.65));
+const dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(6,20,10);scene.add(dl);
+const dl2=new THREE.DirectionalLight(0xffffff,0.35);dl2.position.set(-8,5,-10);scene.add(dl2);
+const target=new THREE.Vector3(0,10,0);
+let theta=0.6,phi=1.25,radius=32;
+function updateCam(){
+  camera.position.set(target.x+radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),target.z+radius*Math.sin(phi)*Math.cos(theta));
+  camera.lookAt(target);
+}
+updateCam();
+// body mesh
+const bodyMat=new THREE.MeshStandardMaterial({color:0x9aa4ac,transparent:true,opacity:0.16,roughness:0.9});
+const body=new THREE.Group();
+function limb(p1,p2,r1,r2){
+  const a=new THREE.Vector3(...p1),b=new THREE.Vector3(...p2);
+  const dir=new THREE.Vector3().subVectors(b,a);const len=dir.length();
+  const geo=new THREE.CylinderGeometry(r2,r1,len,14);
+  const mesh=new THREE.Mesh(geo,bodyMat);
+  const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5);
+  mesh.position.copy(mid);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+  return mesh;
+}
+body.add(new THREE.Mesh(new THREE.SphereGeometry(1.5,20,16),bodyMat).translateOnAxis(new THREE.Vector3(0,1,0),18.3));
+body.add(limb([0,17,0],[0,10.5,0],2.0,1.9));
+body.add(limb([0,10.5,0],[0,7.5,0],1.9,1.6));
+[1,-1].forEach(s=>{
+  body.add(limb([s*2.6,16,0.2],[s*4.0,12.3,0.6],0.55,0.45));
+  body.add(limb([s*4.0,12.3,0.6],[s*4.9,8.6,0.9],0.42,0.35));
+  body.add(limb([s*1.3,8.0,0],[s*1.4,4.0,0.4],0.85,0.6));
+  body.add(limb([s*1.4,4.0,0.4],[s*1.4,0.9,0.3],0.55,0.4));
+  const hand=new THREE.Mesh(new THREE.SphereGeometry(0.4,10,10),bodyMat);
+  hand.position.set(s*4.95,6.8,1.0);
+  body.add(hand);
+});
+scene.add(body);
+// meridian tubes + numbered acupoint markers
+const groupsByM={},markersByM={};
+function numSprite(num,colorHex){
+  const cv=document.createElement('canvas');cv.width=64;cv.height=64;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='rgba(20,24,28,0.92)';ctx.beginPath();ctx.arc(32,32,29,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#'+colorHex.toString(16).padStart(6,'0');ctx.lineWidth=4;ctx.stroke();
+  ctx.fillStyle='#e8e4da';ctx.font='bold 26px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(String(num),32,35);
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,depthWrite:false,sizeAttenuation:true}));
+  spr.scale.set(0.7,0.7,1);
+  spr.renderOrder=10;
+  return spr;
+}
+M.forEach(m=>{
+  const pts=m.pts.map(p=>new THREE.Vector3(...p));
+  const g=new THREE.Group();
+  const mk=new THREE.Group();mk.visible=false;
+  [1,-1].forEach(s=>{
+    const spts=pts.map(p=>new THREE.Vector3(p.x*s,p.y,p.z));
+    const curve=new THREE.CatmullRomCurve3(spts);
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,40,0.12,8,false),new THREE.MeshStandardMaterial({color:m.color,emissive:m.color,emissiveIntensity:0.35,roughness:0.5}));
+    g.add(tube);
+    const n=m.names.length;
+    for(let i=0;i<n;i++){
+      const t=n===1?0:i/(n-1);
+      const spr=numSprite(i+1,m.color);
+      spr.position.copy(curve.getPointAt(t));
+      mk.add(spr);
+    }
+  });
+  scene.add(g);scene.add(mk);
+  groupsByM[m.id]=g;markersByM[m.id]=mk;
+});
+// interaction
+let dragging=false,lx=0,ly=0;
+function down(x,y){dragging=true;lx=x;ly=y;}
+function move(x,y){if(!dragging)return;theta-=(x-lx)*0.006;phi=Math.max(0.35,Math.min(2.6,phi-(y-ly)*0.006));lx=x;ly=y;updateCam();}
+function up(){dragging=false;}
+renderer.domElement.addEventListener('mousedown',e=>down(e.clientX,e.clientY));
+window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+window.addEventListener('mouseup',up);
+let pinchDist=0;
+function touchDist(t){const dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.hypot(dx,dy);}
+renderer.domElement.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){dragging=false;pinchDist=touchDist(e.touches);}
+  else{const t=e.touches[0];down(t.clientX,t.clientY);}
+},{passive:true});
+renderer.domElement.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){
+    const d=touchDist(e.touches);
+    radius=Math.max(14,Math.min(60,radius*(pinchDist/d)));
+    pinchDist=d;updateCam();
+  }else{
+    const t=e.touches[0];move(t.clientX,t.clientY);
+  }
+},{passive:true});
+renderer.domElement.addEventListener('touchend',e=>{if(e.touches.length<2)pinchDist=0;if(e.touches.length===0)up();},{passive:true});
+renderer.domElement.addEventListener('wheel',e=>{radius=Math.max(14,Math.min(60,radius+e.deltaY*0.03));updateCam();e.preventDefault();},{passive:false});
+// sidebar
+const menu=document.getElementById('menu');
+const detail=document.getElementById('detail');
+const sidebar=document.getElementById('sidebar');
+const rowsById={},chevById={};
+let activeId=null;
+function renderDetail(m){
+  const hex='#'+m.color.toString(16).padStart(6,'0');
+  detail.innerHTML=`<div class="d-head"><span class="dot" style="background:${hex}"></span><h3>${m.cn} · ${m.id}</h3><span class="d-close">×</span></div><ol>${m.names.map((n,i)=>`<li>${m.id}${i+1} ${n}</li>`).join('')}</ol>`;
+  detail.querySelector('.d-close').addEventListener('click',exitSolo);
+}
+function exitSolo(){
+  if(activeId)markersByM[activeId].visible=false;
+  activeId=null;
+  sidebar.classList.remove('split');
+  detail.innerHTML='';
+  M.forEach(m=>{groupsByM[m.id].visible=true;rowsById[m.id].classList.remove('off');chevById[m.id].classList.remove('open');});
+}
+function setSolo(id){
+  if(activeId===id){exitSolo();return;}
+  if(activeId)markersByM[activeId].visible=false;
+  activeId=id;
+  markersByM[id].visible=true;
+  sidebar.classList.add('split');
+  const m=M.find(x=>x.id===id);
+  renderDetail(m);
+  M.forEach(x=>{
+    const on=x.id===id;
+    groupsByM[x.id].visible=on;
+    rowsById[x.id].classList.toggle('off',!on);
+    chevById[x.id].classList.toggle('open',on);
+  });
+}
+GROUPS.forEach(grp=>{
+  const h=document.createElement('div');h.className='grp-title';h.textContent=grp;menu.appendChild(h);
+  M.filter(m=>m.grp===grp).forEach(m=>{
+    const row=document.createElement('div');row.className='row';row.dataset.id=m.id;
+    const hex='#'+m.color.toString(16).padStart(6,'0');
+    row.innerHTML=`<span class="dot" style="background:${hex}"></span><span class="nm">${m.cn}</span><span class="ab">${m.id}</span><span class="chev">▸</span>`;
+    const toggleVis=()=>{if(activeId){exitSolo();}const g=groupsByM[m.id];g.visible=!g.visible;row.classList.toggle('off',!g.visible);};
+    row.querySelector('.dot').addEventListener('click',toggleVis);
+    row.querySelector('.nm').addEventListener('click',toggleVis);
+    row.querySelector('.ab').addEventListener('click',toggleVis);
+    row.querySelector('.chev').addEventListener('click',()=>setSolo(m.id));
+    menu.appendChild(row);
+    rowsById[m.id]=row;chevById[m.id]=row.querySelector('.chev');
+  });
+});
+document.getElementById('btnAll').onclick=()=>{exitSolo();};
+document.getElementById('btnNone').onclick=()=>{if(activeId)markersByM[activeId].visible=false;activeId=null;sidebar.classList.remove('split');detail.innerHTML='';M.forEach(m=>{groupsByM[m.id].visible=false;rowsById[m.id].classList.add('off');chevById[m.id].classList.remove('open');});};
+resize();
+(function loop(){requestAnimationFrame(loop);renderer.render(scene,camera);})();
+</script>
+</body>
+</html>

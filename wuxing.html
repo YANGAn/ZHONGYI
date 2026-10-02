@@ -35,8 +35,6 @@
             border-bottom: 1px solid #ddd;
             padding-bottom: 10px;
         }
-        
-        /* 模式切换 */
         .mode-switch {
             display: flex;
             justify-content: center;
@@ -57,14 +55,11 @@
             color: #fff;
             border-color: #5a4a3a;
         }
-
         .score {
             font-size: 15px;
             color: #8c7a6b;
             margin-bottom: 15px;
         }
-
-        /* 模式一：属性分类 */
         .q-box {
             background-color: #f9f6f0;
             padding: 20px 10px;
@@ -75,7 +70,6 @@
         }
         .q-label { font-size: 14px; color: #999; margin-bottom: 8px; }
         .q-text { font-size: 28px; font-weight: bold; color: #3e3226; }
-        
         .btns { display: flex; justify-content: space-between; gap: 5px; }
         .btn {
             flex: 1; padding: 12px 0; font-size: 16px; font-weight: bold;
@@ -88,8 +82,6 @@
         .tu { background-color: #FFC107; color: #333; }
         .jin { background-color: #FFFFFF; color: #000000; border: 1px solid #ccc; }
         .shui { background-color: #000000; color: #FFFFFF; }
-
-        /* 模式二：治法选择题 */
         .rule-box {
             background-color: #fff9e6;
             padding: 15px;
@@ -100,7 +92,6 @@
         }
         .rule-title { font-size: 15px; font-weight: bold; color: #b88a00; margin-bottom: 5px; }
         .rule-desc { font-size: 13px; color: #666; margin-bottom: 0; line-height: 1.4; }
-        
         .therapy-text {
             font-size: 18px;
             font-weight: bold;
@@ -123,7 +114,6 @@
             font-weight: normal;
             margin: 0 5px;
         }
-
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -145,18 +135,14 @@
         }
         .btn-option:active { background: #eee; }
         .btn-option:disabled { opacity: 0.5; cursor: not-allowed; }
-        
         .msg { height: 25px; margin-top: 15px; font-size: 16px; font-weight: bold; }
         .green { color: #4CAF50; }
         .red { color: #F44336; }
-        
         .restart {
             margin-top: 15px; padding: 10px 20px;
             background: #5a4a3a; color: white; border: none;
             border-radius: 5px; font-size: 15px; cursor: pointer;
         }
-
-        /* 错题本 */
         .review-box {
             display: none; text-align: left; margin-top: 20px;
             border-top: 2px dashed #e0d6c8; padding-top: 15px;
@@ -182,7 +168,6 @@
 
     <div class="score">进度: <span id="progress">0</span> / <span id="total-limit">10</span> | 得分: <span id="score">0</span></div>
 
-    <!-- 模式一：属性分类 -->
     <div id="game-area-1">
         <div class="q-box">
             <div class="q-label" id="q-category">正在加载...</div>
@@ -198,25 +183,16 @@
         <div class="msg" id="msg-1"></div>
     </div>
 
-    <!-- 模式二：治法选择 -->
     <div id="game-area-2" style="display: none;">
         <div class="rule-box">
             <div class="rule-title">📜 治则原文</div>
             <div class="rule-desc">“虚则补其母，实则泻其子” / “抑强扶弱”</div>
         </div>
-        
-        <div class="therapy-text" id="q-target">
-            <!-- JS 动态填充 -->
-        </div>
-
-        <div class="options-grid" id="options-container">
-            <!-- JS 动态生成 -->
-        </div>
-        
+        <div class="therapy-text" id="q-target"></div>
+        <div class="options-grid" id="options-container"></div>
         <div class="msg" id="msg-2"></div>
     </div>
 
-    <!-- 结果与错题区 -->
     <div id="result-area" style="display: none;">
         <h2 id="final-score-text" style="color:#5a4a3a;">游戏结束</h2>
         <div class="review-box" id="review-box">
@@ -229,60 +205,26 @@
 </div>
 
 <script type="text/javascript">
-    // 数据结构 (分类游戏用)
+    // 数据结构 (加入五华、五神)
     var rawData = {
-        '木': ['角', '酸', '青', '生', '风', '东', '春', '肝', '胆', '目', '筋', '怒', '泪', '弦'],
-        '火': ['徵', '苦', '赤', '长', '暑', '南', '夏', '心', '小肠', '舌', '脉', '喜', '汗', '洪'],
-        '土': ['宫', '甘', '黄', '化', '湿', '中', '长夏', '脾', '胃', '口', '肉', '思', '涎', '缓'],
-        '金': ['商', '辛', '白', '收', '燥', '西', '秋', '肺', '大肠', '鼻', '皮', '悲', '涕', '浮'],
-        '水': ['羽', '咸', '黑', '藏', '寒', '北', '冬', '肾', '膀胱', '耳', '骨', '恐', '唾', '沉']
+        '木': ['角', '酸', '青', '生', '风', '东', '春', '肝', '胆', '目', '筋', '怒', '泪', '弦', '爪', '魂'],
+        '火': ['徵', '苦', '赤', '长', '暑', '南', '夏', '心', '小肠', '舌', '脉', '喜', '汗', '洪', '面', '神'],
+        '土': ['宫', '甘', '黄', '化', '湿', '中', '长夏', '脾', '胃', '口', '肉', '思', '涎', '缓', '唇', '意'],
+        '金': ['商', '辛', '白', '收', '燥', '西', '秋', '肺', '大肠', '鼻', '皮', '悲', '涕', '浮', '毛', '魄'],
+        '水': ['羽', '咸', '黑', '藏', '寒', '北', '冬', '肾', '膀胱', '耳', '骨', '恐', '唾', '沉', '发', '志']
     };
-    var categories = ['五音', '五味', '五色', '五化', '五气', '五方', '五季', '五脏', '五腑', '五官', '五体', '五志', '五液', '五脉'];
+    // 加入五华、五神两个分类
+    var categories = ['五音', '五味', '五色', '五化', '五气', '五方', '五季', '五脏', '五腑', '五官', '五体', '五志', '五液', '五脉', '五华', '五神'];
 
-    // 治法选择题题库（包含图片中的生克治法）
     var therapyBank = [
-        // ---- 相生治法（虚则补其母） ----
-        { 
-            question: '肝虚证，治宜：( )', 
-            answer: '滋水涵木法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        { 
-            question: '肾虚脾弱，治宜：( )', 
-            answer: '益火补土法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        { 
-            question: '肺脾气虚，治宜：( )', 
-            answer: '培土生金法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        { 
-            question: '肺肾阴虚，治宜：( )', 
-            answer: '金水相生法',
-            options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法']
-        },
-        // ---- 相克治法（抑强扶弱） ----
-        { 
-            question: '肝强脾弱（木旺乘土），治宜：( )', 
-            answer: '抑木扶土法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        },
-        { 
-            question: '脾虚水泛（土不制水），治宜：( )', 
-            answer: '培土制水法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        },
-        { 
-            question: '肝火犯肺（木火刑金），治宜：( )', 
-            answer: '佐金平木法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        },
-        { 
-            question: '心火亢盛，肾水不足（心肾不交），治宜：( )', 
-            answer: '泻南补北法',
-            options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法']
-        }
+        { question: '肝虚证，治宜：( )', answer: '滋水涵木法', options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法'] },
+        { question: '肾虚脾弱，治宜：( )', answer: '益火补土法', options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法'] },
+        { question: '肺脾气虚，治宜：( )', answer: '培土生金法', options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法'] },
+        { question: '肺肾阴虚，治宜：( )', answer: '金水相生法', options: ['滋水涵木法', '益火补土法', '培土生金法', '金水相生法'] },
+        { question: '肝强脾弱（木旺乘土），治宜：( )', answer: '抑木扶土法', options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法'] },
+        { question: '脾虚水泛（土不制水），治宜：( )', answer: '培土制水法', options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法'] },
+        { question: '肝火犯肺（木火刑金），治宜：( )', answer: '佐金平木法', options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法'] },
+        { question: '心火亢盛，肾水不足（心肾不交），治宜：( )', answer: '泻南补北法', options: ['抑木扶土法', '培土制水法', '佐金平木法', '泻南补北法'] }
     ];
 
     var currentMode = 1;
@@ -305,7 +247,7 @@
         } else {
             document.getElementById('game-area-1').style.display = 'none';
             document.getElementById('game-area-2').style.display = 'block';
-            document.getElementById('total-limit').innerText = '8'; // 目前题库是 8 题
+            document.getElementById('total-limit').innerText = '8';
         }
         startGame();
     }
@@ -341,7 +283,6 @@
             allQuestions.sort(function() { return Math.random() - 0.5; });
             pool = allQuestions.slice(0, 10);
         } else {
-            // 治法题库：打乱题目顺序和选项顺序
             pool = JSON.parse(JSON.stringify(therapyBank)); 
             pool.sort(function() { return Math.random() - 0.5; });
             pool.forEach(function(item) {
@@ -353,10 +294,7 @@
     }
 
     function nextQuestion() {
-        if (pool.length === 0) {
-            showResult();
-            return;
-        }
+        if (pool.length === 0) { showResult(); return; }
         
         lock = false;
         currentQuestion = pool.pop();
@@ -366,14 +304,11 @@
         if (currentMode === 1) {
             document.getElementById('q-category').innerText = '考察项目：' + currentQuestion.cat;
             document.getElementById('q-text').innerText = currentQuestion.text;
-            
             var btns = document.querySelectorAll('#game-area-1 .btn');
             for (var i = 0; i < btns.length; i++) btns[i].disabled = false;
         } else {
-            // 治法模式
             var displayText = currentQuestion.question.replace('( )', '<span class="blank">?</span>');
             document.getElementById('q-target').innerHTML = displayText;
-            
             var optContainer = document.getElementById('options-container');
             optContainer.innerHTML = '';
             for (var j = 0; j < currentQuestion.options.length; j++) {
@@ -391,13 +326,10 @@
     function answerClassify(choice) {
         if (lock || !currentQuestion) return;
         lock = true;
-        
         total++;
         document.getElementById('progress').innerText = total;
-        
         var msg = document.getElementById('msg-1');
         var isCorrect = (choice === currentQuestion.ans);
-        
         if (isCorrect) {
             score++;
             document.getElementById('score').innerText = score;
@@ -413,26 +345,20 @@
                 correctAns: currentQuestion.ans
             });
         }
-        
         var btns = document.querySelectorAll('#game-area-1 .btn');
         for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
-        
         setTimeout(nextQuestion, 800);
     }
 
     function submitTherapy(selected) {
         if (lock || !currentQuestion) return;
         lock = true;
-        
         total++;
         document.getElementById('progress').innerText = total;
-        
         var msg = document.getElementById('msg-2');
         var isCorrect = (selected === currentQuestion.answer);
-        
         var btns = document.querySelectorAll('#options-container .btn-option');
         for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
-        
         if (isCorrect) {
             score++;
             document.getElementById('score').innerText = score;
@@ -448,7 +374,6 @@
                 correctAns: currentQuestion.answer
             });
         }
-        
         setTimeout(nextQuestion, 1500);
     }
 
@@ -457,10 +382,8 @@
         document.getElementById('game-area-2').style.display = 'none';
         document.getElementById('result-area').style.display = 'block';
         document.getElementById('restart-btn').style.display = 'inline-block';
-        
         var rate = total > 0 ? Math.round((score / total) * 100) : 0;
         var finalScoreText = document.getElementById('final-score-text');
-        
         if (wrongList.length === 0) {
             finalScoreText.innerHTML = '🎉 太棒了！满分 ' + score + ' / ' + total + '！<br>您已完全掌握！';
             document.getElementById('review-box').style.display = 'none';
@@ -474,7 +397,6 @@
     function renderWrongList() {
         var listContainer = document.getElementById('review-list');
         listContainer.innerHTML = '';
-        
         for (var i = 0; i < wrongList.length; i++) {
             var item = wrongList[i];
             var div = document.createElement('div');
@@ -486,7 +408,6 @@
         }
     }
 
-    // 立即启动
     startGame();
 </script>
 
