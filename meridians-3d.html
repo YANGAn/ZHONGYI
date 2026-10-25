@@ -3,78 +3,195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>十二经脉 · 三维走向图</title>
+<title>子午流注 · 经络时钟 3D 演示</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 :root{
   --bg:#14181c; --panel:#1b2126; --panel2:#20272d; --text:#e8e4da; --muted:#8b939b; --line:#333c43;
-  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box}
-html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Songti SC","Noto Serif SC",serif;overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column}
-header{padding:14px 18px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
-h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.02em}
-p.sub{margin:4px 0 0;color:var(--muted);font-size:12.5px;font-family:-apple-system,"PingFang SC",sans-serif}
-#main{flex:1;display:flex;min-height:0;flex-direction:row}
+html{height:100%}
+body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Songti SC","Noto Serif SC",serif;overflow:hidden;display:flex;flex-direction:column}
+
+/* 顶部 3D 区域 */
+header{padding:10px 18px;border-bottom:1px solid var(--line);flex:0 0 auto;display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;font-size:18px;font-weight:600;letter-spacing:.02em}
+.info-board{font-family:-apple-system,"PingFang SC",sans-serif;text-align:right}
+.info-board div{margin-bottom:6px;font-size:13px;color:var(--muted)}
+.info-board span{font-weight:bold;color:var(--text)}
+
 #canvas-wrap{flex:1;position:relative;min-height:0}
 canvas{display:block;width:100%;height:100%;touch-action:none}
-#hint{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:var(--muted);font-family:-apple-system,"PingFang SC",sans-serif;background:rgba(20,24,28,.6);padding:4px 8px;border-radius:6px}
-#sidebar{width:270px;flex:0 0 auto;background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:12px 12px 20px;font-family:-apple-system,"PingFang SC",sans-serif}
-.grp-title{font-size:11px;color:var(--muted);margin:14px 4px 6px;font-family:"Songti SC",serif}
-.grp-title:first-child{margin-top:2px}
-.row{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;transition:background .15s}
-.row:hover{background:var(--panel2)}
-.row.off{opacity:.4}
-.dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;cursor:pointer}
-.nm{font-size:13.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
-.ab{font-size:11px;color:var(--muted);cursor:pointer}
-.chev{width:22px;height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;transition:transform .15s}
-.chev:hover{background:var(--line);color:var(--text)}
-.chev.open{transform:rotate(90deg);color:var(--text)}
-#cols{display:flex;align-items:flex-start;gap:0;min-height:0}
-#menu{flex:1;min-width:0;transition:flex .18s}
-#detail{flex:0 0 0;width:0;overflow:hidden;transition:flex .18s;padding-left:0}
-#sidebar.split #menu{flex:0 0 118px}
-#sidebar.split #menu .nm{display:none}
-#sidebar.split #menu .row{padding:7px 4px}
-#sidebar.split #detail{flex:1 1 auto;width:auto;padding-left:10px;border-left:1px solid var(--line);max-height:70vh;overflow-y:auto}
-.d-head{display:flex;align-items:center;gap:8px;margin:2px 0 8px}
-.d-head .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
-.d-head h3{margin:0;font-size:14px;flex:1;min-width:0}
-.d-close{cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:2px 6px;border-radius:6px}
-.d-close:hover{background:var(--panel2);color:var(--text)}
-#detail ol{margin:0;padding-left:18px}
-#detail li{font-size:12.5px;line-height:2;color:var(--text)}
-#detail li::marker{color:var(--muted);font-size:10.5px}
-.ctrl{display:flex;gap:8px;padding:2px 4px 10px}
-.ctrl button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:7px 0;border-radius:7px;font-size:12px;font-family:inherit;cursor:pointer}
-.ctrl button:active{background:var(--line)}
-footer{padding:6px 18px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line);font-family:-apple-system,"PingFang SC",sans-serif;flex:0 0 auto;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+#hint{position:absolute;left:12px;bottom:10px;font-size:11px;color:var(--muted);background:rgba(20,24,28,.6);padding:4px 8px;border-radius:6px;pointer-events:none}
+
+/* ================= 底部区域 ================= */
+#bottom-section{
+  flex:0 0 240px; 
+  height: 240px;
+  background:var(--panel);border-top:2px solid var(--line);
+  display:flex;
+  overflow: hidden; 
+}
+
+/* 左侧表盘 */
+#clock-area{
+  flex:0 0 260px; 
+  display:flex;justify-content:center;align-items:center;
+  border-right:1px solid var(--line);
+  position:relative;
+  user-select:none;
+}
+#clock-container{
+  position:relative;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle, #20272d 0%, #14181c 100%);
+  box-shadow:inset 0 0 20px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5);
+  border:1px solid #333;
+  cursor:grab;
+}
+#clock-container:active{cursor:grabbing}
+.center-dot{position:absolute;top:50%;left:50%;width:8px;height:8px;background:#e8e4da;border-radius:50%;transform:translate(-50%,-50%);z-index:10;box-shadow:0 0 10px #fff;pointer-events:none}
+
+/* 表盘文字 */
+.zhi-text{
+  position:absolute;top:50%;left:50%;
+  font-size:11px;font-family:-apple-system,"PingFang SC",sans-serif;
+  color:var(--muted);text-align:center;line-height:1.2;
+  transition:color 0.3s, text-shadow 0.3s;
+  pointer-events:none;
+  width: 54px; 
+}
+.zhi-text.active{color:#fff;font-weight:bold;text-shadow:0 0 8px var(--active-color);}
+.zhi-text.prev{color:#ffd54f;}
+
+/* 时钟指针（已缩短） */
+#clock-hand{
+  position:absolute;top:50%;left:50%;width:4px;height:55px;background:#e8e4da;
+  transform-origin:bottom center;transform:translate(-50%,-100%) rotate(0deg);
+  border-radius:4px;z-index:5;pointer-events:none;
+  box-shadow:0 0 10px rgba(255,255,255,0.3);
+}
+#clock-hand::after{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  width:14px;height:14px;background:#e8e4da;border-radius:50%;
+  box-shadow:0 0 10px rgba(255,255,255,0.5);
+}
+.clock-tick{position:absolute;top:50%;left:50%;width:2px;height:6px;background:#555;transform-origin:0 0;z-index:1;pointer-events:none}
+.drag-hint{position:absolute;bottom:2px;width:100%;text-align:center;font-size:10px;color:var(--muted);font-family:sans-serif;pointer-events:none}
+
+/* ================= 右侧穴位小框 ================= */
+#detail-area{
+  flex:1; 
+  min-width:0; 
+  padding: 12px 15px; 
+  display:flex;
+  flex-direction:column;
+  height: 100%; 
+}
+
+.detail-box {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  flex: 1; 
+  overflow: hidden; 
+}
+
+.d-head {
+  display:flex; align-items:center; gap:8px;
+  padding: 8px 12px;
+  border-bottom:1px solid var(--line);
+  background: #1b2126;
+  flex: 0 0 auto;
+}
+.d-head .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.d-head h3{margin:0;font-size:14px;flex:1;color:var(--text);}
+.d-head span{font-size:11px;color:var(--muted);}
+
+#detail-list {
+  flex: 1;
+  overflow-y: auto; 
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+}
+#detail-list::-webkit-scrollbar { width: 6px; }
+#detail-list::-webkit-scrollbar-track { background: transparent; }
+#detail-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+#detail-list::-webkit-scrollbar-thumb:hover { background: #666; }
+
+.acupoint{
+  background:var(--panel); border:1px solid var(--line);
+  padding:4px 8px; border-radius:4px; font-size:12px; color:var(--text);
+  white-space: nowrap;
+}
+.acupoint span{color:var(--muted); font-size:10px; margin-right:4px;}
+
 @media (max-width:680px){
-  #main{flex-direction:column}
-  #sidebar{width:100%;flex:0 0 auto;max-height:34%;border-left:none;border-top:1px solid var(--line)}
+  #bottom-section{height: 210px; flex:0 0 210px;}
+  #clock-area{flex:0 0 210px;}
+  #clock-container{width:160px;height:160px;}
+  #clock-hand{height:45px} /* 手机端指针更短 */
+  .zhi-text{width:44px;font-size:10px;}
+  #detail-area{padding: 10px;}
 }
 </style>
 </head>
 <body>
-<div id="app">
-<header><h1>十二经脉 · 位置与走向</h1><p class="sub">拖动旋转 · 双指或滚轮缩放 · 点击 ▸ 单独显示该经，右侧展开腧穴列表</p></header>
-<div id="main">
-  <div id="canvas-wrap"><div id="hint">示意简化模型，穴位按顺序编号沿路径均匀标出，非精确解剖定位</div></div>
-  <div id="sidebar">
-    <div class="ctrl"><button id="btnAll">全部显示</button><button id="btnNone">全部隐藏</button></div>
-    <div id="cols">
-      <div id="menu"></div>
-      <div id="detail"></div>
+
+<header>
+  <h1>子午流注 · 经络时钟</h1>
+  <div class="info-board">
+    <div>当前流注: <span id="cur-info" style="color:#ffd54f">--</span></div>
+    <div>上一个时辰: <span id="prev-info">--</span></div>
+  </div>
+</header>
+
+<div id="canvas-wrap">
+  <div id="hint">拖动旋转 · 滚轮/双指缩放 · 当前经络有流光，上一经络亮起实线</div>
+</div>
+
+<div id="bottom-section">
+  <div id="clock-area">
+    <div id="clock-container">
+      <div id="clock-hand"></div>
+      <div class="center-dot"></div>
+    </div>
+    <div class="drag-hint">👆 拨动表盘</div>
+  </div>
+  
+  <div id="detail-area">
+    <div class="detail-box">
+      <div class="d-head">
+        <span class="dot" id="detail-dot"></span>
+        <h3 id="detail-title">手太阴肺经</h3>
+        <span id="detail-count">共 11 穴</span>
+      </div>
+      <div id="detail-list"></div>
     </div>
   </div>
 </div>
-<footer>十二经脉三维示意 · 阴经行于肢体内侧，阳经行于外侧</footer>
-</div>
+
 <script>
-const M=[
+const SHICHEN = [
+  { zhi: "子", id: "GB", name: "足少阳胆经", color: 0x6FA05B, angle: 0 },
+  { zhi: "丑", id: "LR", name: "足厥阴肝经", color: 0x8FA83E, angle: 30 },
+  { zhi: "寅", id: "LU", name: "手太阴肺经", color: 0xE8B4A0, angle: 60 },
+  { zhi: "卯", id: "LI", name: "手阳明大肠经", color: 0xD4956B, angle: 90 },
+  { zhi: "辰", id: "ST", name: "足阳明胃经", color: 0xD9A441, angle: 120 },
+  { zhi: "巳", id: "SP", name: "足太阴脾经", color: 0xB8A339, angle: 150 },
+  { zhi: "午", id: "HT", name: "手少阴心经", color: 0xC0596B, angle: 180 },
+  { zhi: "未", id: "SI", name: "手太阳小肠经", color: 0x9C5B7A, angle: 210 },
+  { zhi: "申", id: "BL", name: "足太阳膀胱经", color: 0x4A7A9C, angle: 240 },
+  { zhi: "酉", id: "KI", name: "足少阴肾经", color: 0x3F5F8A, angle: 270 },
+  { zhi: "戌", id: "PC", name: "手厥阴心包经", color: 0x6B8FA3, angle: 300 },
+  { zhi: "亥", id: "SJ", name: "手少阳三焦经", color: 0x7FA093, angle: 330 }
+];
+
+const M = [
 {id:"LU",cn:"手太阴肺经",grp:"手三阴",color:0xE8B4A0,pts:[[1.0,14.5,1.4],[2.3,16.0,0.6],[3.7,12.3,1.0],[4.6,8.6,1.3],[4.9,6.8,1.4]],names:"中府 云门 天府 侠白 尺泽 孔最 列缺 经渠 太渊 鱼际 少商".split(" ")},
 {id:"PC",cn:"手厥阴心包经",grp:"手三阴",color:0x6B8FA3,pts:[[0.8,14.3,1.6],[2.3,16.0,0.2],[3.7,12.3,0.6],[4.6,8.6,0.9],[4.9,6.8,1.0]],names:"天池 天泉 曲泽 郄门 间使 内关 大陵 劳宫 中冲".split(" ")},
 {id:"HT",cn:"手少阴心经",grp:"手三阴",color:0xC0596B,pts:[[1.0,15.0,0.0],[2.3,16.0,-0.2],[3.7,12.3,0.2],[4.6,8.6,0.5],[4.9,6.8,0.6]],names:"极泉 青灵 少海 灵道 通里 阴郄 神门 少府 少冲".split(" ")},
@@ -85,10 +202,10 @@ const M=[
 {id:"GB",cn:"足少阳胆经",grp:"足三阳",color:0x6FA05B,pts:[[1.9,18.5,0.6],[2.5,18.7,-0.3],[1.8,19.0,-0.7],[1.4,17.0,-0.6],[2.0,13.0,0.0],[1.9,9.0,0.1],[1.6,8.0,0.0],[1.7,4.0,0.4],[1.7,0.9,0.3],[1.6,0.3,2.0]],names:"瞳子髎 听会 上关 颔厌 悬颅 悬厘 曲鬓 率谷 天冲 浮白 头窍阴 完骨 本神 阳白 头临泣 目窗 正营 承灵 脑空 风池 肩井 渊腋 辄筋 日月 京门 带脉 五枢 维道 居髎 环跳 风市 中渎 膝阳关 阳陵泉 阳交 外丘 光明 阳辅 悬钟 丘墟 足临泣 地五会 侠溪 足窍阴".split(" ")},
 {id:"BL",cn:"足太阳膀胱经",grp:"足三阳",color:0x4A7A9C,pts:[[0.3,18.6,1.5],[0,20.3,0],[0,17.0,-0.9],[0.9,13.0,-1.6],[0.9,9.0,-1.4],[1.6,7.5,-1.0],[1.7,4.0,-0.2],[1.7,0.9,-0.3],[1.4,0.3,1.6]],names:"睛明 攒竹 眉冲 曲差 五处 承光 通天 络却 玉枕 天柱 大杼 风门 肺俞 厥阴俞 心俞 督俞 膈俞 肝俞 胆俞 脾俞 胃俞 三焦俞 肾俞 气海俞 大肠俞 关元俞 小肠俞 膀胱俞 中膂俞 白环俞 上髎 次髎 中髎 下髎 会阳 承扶 殷门 浮郄 委阳 委中 附分 魄户 膏肓 神堂 譩譆 膈关 魂门 阳纲 意舍 胃仓 肓门 志室 胞肓 秩边 合阳 承筋 承山 飞扬 跗阳 昆仑 仆参 申脉 金门 京骨 束骨 足通谷 至阴".split(" ")},
 {id:"SP",cn:"足太阴脾经",grp:"足三阴",color:0xB8A339,pts:[[1.1,0.3,1.9],[1.1,0.9,-0.1],[1.1,4.0,-0.2],[1.0,8.0,-0.4],[1.0,11.0,1.0],[1.6,15.6,0.8]],names:"隐白 大都 太白 公孙 商丘 三阴交 漏谷 地机 阴陵泉 血海 箕门 冲门 府舍 腹结 大横 腹哀 食窦 天溪 胸乡 周荣 大包".split(" ")},
-{id:"LR",cn:"足厥阴肝经",grp:"足三阴",color:0x8FA83E,pts:[[1.2,0.3,1.5],[1.15,0.9,-0.25],[1.15,4.0,-0.35],[1.05,8.0,-0.55],[1.3,12.5,0.6]],names:"大敦 行间 太冲 中封 蠡沟 中都 膝关 曲泉 阴包 足五里 阴廉 急脉 章门 期门".split(" ")},
+{id:"LR",cn:"足厥阴肝经",grp:"足三阴",color:0x8FA83E,pts:[[1.2,0.3,1.5],[1.15,0.9,-0.25],[1.15,4.0,-0.35],[1.05,8.0,-0.55],[1.3,14.5,0.6]],names:"大敦 行间 太冲 中封 蠡沟 中都 膝关 曲泉 阴包 足五里 阴廉 急脉 章门 期门".split(" ")},
 {id:"KI",cn:"足少阴肾经",grp:"足三阴",color:0x3F5F8A,pts:[[1.2,0.15,0.0],[1.2,0.9,-0.4],[1.2,4.0,-0.5],[1.1,8.0,-0.7],[0.6,10.0,0.9],[0.9,14.8,1.0]],names:"涌泉 然谷 太溪 大钟 水泉 照海 复溜 交信 筑宾 阴谷 横骨 大赫 气穴 四满 中注 肓俞 商曲 石关 阴都 腹通谷 幽门 步廊 神封 灵墟 神藏 彧中 俞府".split(" ")}
 ];
-const GROUPS=["手三阴","手三阳","足三阳","足三阴"];
+
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x14181c);
 const wrap=document.getElementById('canvas-wrap');
@@ -97,9 +214,11 @@ const renderer=new THREE.WebGLRenderer({antialias:true});
 wrap.appendChild(renderer.domElement);
 function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 window.addEventListener('resize',resize);
+
 scene.add(new THREE.AmbientLight(0xffffff,0.65));
 const dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(6,20,10);scene.add(dl);
 const dl2=new THREE.DirectionalLight(0xffffff,0.35);dl2.position.set(-8,5,-10);scene.add(dl2);
+
 const target=new THREE.Vector3(0,10,0);
 let theta=0.6,phi=1.25,radius=32;
 function updateCam(){
@@ -107,7 +226,7 @@ function updateCam(){
   camera.lookAt(target);
 }
 updateCam();
-// body mesh
+
 const bodyMat=new THREE.MeshStandardMaterial({color:0x9aa4ac,transparent:true,opacity:0.16,roughness:0.9});
 const body=new THREE.Group();
 function limb(p1,p2,r1,r2){
@@ -133,41 +252,62 @@ body.add(limb([0,10.5,0],[0,7.5,0],1.9,1.6));
   body.add(hand);
 });
 scene.add(body);
-// meridian tubes + numbered acupoint markers
-const groupsByM={},markersByM={};
-function numSprite(num,colorHex){
-  const cv=document.createElement('canvas');cv.width=64;cv.height=64;
-  const ctx=cv.getContext('2d');
-  ctx.fillStyle='rgba(20,24,28,0.92)';ctx.beginPath();ctx.arc(32,32,29,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#'+colorHex.toString(16).padStart(6,'0');ctx.lineWidth=4;ctx.stroke();
-  ctx.fillStyle='#e8e4da';ctx.font='bold 26px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(String(num),32,35);
-  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,depthWrite:false,sizeAttenuation:true}));
-  spr.scale.set(0.7,0.7,1);
-  spr.renderOrder=10;
-  return spr;
-}
+
+const groupsByM={};
+const flowTextures = {}; 
+
 M.forEach(m=>{
   const pts=m.pts.map(p=>new THREE.Vector3(...p));
   const g=new THREE.Group();
-  const mk=new THREE.Group();mk.visible=false;
+  
   [1,-1].forEach(s=>{
     const spts=pts.map(p=>new THREE.Vector3(p.x*s,p.y,p.z));
     const curve=new THREE.CatmullRomCurve3(spts);
-    const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,40,0.12,8,false),new THREE.MeshStandardMaterial({color:m.color,emissive:m.color,emissiveIntensity:0.35,roughness:0.5}));
+    const tubeGeo = new THREE.TubeGeometry(curve,80,0.12,8,false); 
+    
+    const baseMat = new THREE.MeshStandardMaterial({
+      color: m.color, transparent: true, opacity: 0.0, roughness: 0.5
+    });
+    const tube = new THREE.Mesh(tubeGeo, baseMat);
     g.add(tube);
-    const n=m.names.length;
-    for(let i=0;i<n;i++){
-      const t=n===1?0:i/(n-1);
-      const spr=numSprite(i+1,m.color);
-      spr.position.copy(curve.getPointAt(t));
-      mk.add(spr);
-    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 128; 
+    canvas.height = 32; 
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fillRect(0, 0, 128, 32);
+    const hex = '#' + m.color.toString(16).padStart(6, '0');
+    const grad = ctx.createLinearGradient(0, 0, 128, 0);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.3, hex);
+    grad.addColorStop(0.5, '#ffffff');
+    grad.addColorStop(0.7, hex);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 32);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 1); 
+    
+    const flowMat = new THREE.MeshBasicMaterial({
+      map: texture, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0
+    });
+    
+    const flowTube = new THREE.Mesh(tubeGeo, flowMat);
+    flowTube.scale.set(1.05, 1.05, 1.05);
+    g.add(flowTube);
+
+    if(!flowTextures[m.id]) flowTextures[m.id] = [];
+    flowTextures[m.id].push(texture);
   });
-  scene.add(g);scene.add(mk);
-  groupsByM[m.id]=g;markersByM[m.id]=mk;
+  
+  scene.add(g);
+  groupsByM[m.id]=g;
 });
-// interaction
+
 let dragging=false,lx=0,ly=0;
 function down(x,y){dragging=true;lx=x;ly=y;}
 function move(x,y){if(!dragging)return;theta-=(x-lx)*0.006;phi=Math.max(0.35,Math.min(2.6,phi-(y-ly)*0.006));lx=x;ly=y;updateCam();}
@@ -175,75 +315,198 @@ function up(){dragging=false;}
 renderer.domElement.addEventListener('mousedown',e=>down(e.clientX,e.clientY));
 window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
 window.addEventListener('mouseup',up);
-let pinchDist=0;
-function touchDist(t){const dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.hypot(dx,dy);}
-renderer.domElement.addEventListener('touchstart',e=>{
-  if(e.touches.length===2){dragging=false;pinchDist=touchDist(e.touches);}
-  else{const t=e.touches[0];down(t.clientX,t.clientY);}
-},{passive:true});
-renderer.domElement.addEventListener('touchmove',e=>{
-  if(e.touches.length===2){
-    const d=touchDist(e.touches);
-    radius=Math.max(14,Math.min(60,radius*(pinchDist/d)));
-    pinchDist=d;updateCam();
-  }else{
-    const t=e.touches[0];move(t.clientX,t.clientY);
-  }
-},{passive:true});
-renderer.domElement.addEventListener('touchend',e=>{if(e.touches.length<2)pinchDist=0;if(e.touches.length===0)up();},{passive:true});
+renderer.domElement.addEventListener('touchstart',e=>{const t=e.touches[0];down(t.clientX,t.clientY);},{passive:true});
+renderer.domElement.addEventListener('touchmove',e=>{const t=e.touches[0];move(t.clientX,t.clientY);},{passive:true});
+renderer.domElement.addEventListener('touchend',up);
 renderer.domElement.addEventListener('wheel',e=>{radius=Math.max(14,Math.min(60,radius+e.deltaY*0.03));updateCam();e.preventDefault();},{passive:false});
-// sidebar
-const menu=document.getElementById('menu');
-const detail=document.getElementById('detail');
-const sidebar=document.getElementById('sidebar');
-const rowsById={},chevById={};
-let activeId=null;
-function renderDetail(m){
-  const hex='#'+m.color.toString(16).padStart(6,'0');
-  detail.innerHTML=`<div class="d-head"><span class="dot" style="background:${hex}"></span><h3>${m.cn} · ${m.id}</h3><span class="d-close">×</span></div><ol>${m.names.map((n,i)=>`<li>${m.id}${i+1} ${n}</li>`).join('')}</ol>`;
-  detail.querySelector('.d-close').addEventListener('click',exitSolo);
-}
-function exitSolo(){
-  if(activeId)markersByM[activeId].visible=false;
-  activeId=null;
-  sidebar.classList.remove('split');
-  detail.innerHTML='';
-  M.forEach(m=>{groupsByM[m.id].visible=true;rowsById[m.id].classList.remove('off');chevById[m.id].classList.remove('open');});
-}
-function setSolo(id){
-  if(activeId===id){exitSolo();return;}
-  if(activeId)markersByM[activeId].visible=false;
-  activeId=id;
-  markersByM[id].visible=true;
-  sidebar.classList.add('split');
-  const m=M.find(x=>x.id===id);
-  renderDetail(m);
-  M.forEach(x=>{
-    const on=x.id===id;
-    groupsByM[x.id].visible=on;
-    rowsById[x.id].classList.toggle('off',!on);
-    chevById[x.id].classList.toggle('open',on);
-  });
-}
-GROUPS.forEach(grp=>{
-  const h=document.createElement('div');h.className='grp-title';h.textContent=grp;menu.appendChild(h);
-  M.filter(m=>m.grp===grp).forEach(m=>{
-    const row=document.createElement('div');row.className='row';row.dataset.id=m.id;
-    const hex='#'+m.color.toString(16).padStart(6,'0');
-    row.innerHTML=`<span class="dot" style="background:${hex}"></span><span class="nm">${m.cn}</span><span class="ab">${m.id}</span><span class="chev">▸</span>`;
-    const toggleVis=()=>{if(activeId){exitSolo();}const g=groupsByM[m.id];g.visible=!g.visible;row.classList.toggle('off',!g.visible);};
-    row.querySelector('.dot').addEventListener('click',toggleVis);
-    row.querySelector('.nm').addEventListener('click',toggleVis);
-    row.querySelector('.ab').addEventListener('click',toggleVis);
-    row.querySelector('.chev').addEventListener('click',()=>setSolo(m.id));
-    menu.appendChild(row);
-    rowsById[m.id]=row;chevById[m.id]=row.querySelector('.chev');
-  });
+
+const clockContainer = document.getElementById('clock-container');
+const clockHand = document.getElementById('clock-hand');
+const textElements = [];
+
+SHICHEN.forEach((sc, index) => {
+    const textDiv = document.createElement('div');
+    textDiv.className = 'zhi-text';
+    const radius = 80; 
+    const rad = (sc.angle - 90) * Math.PI / 180;
+    const tx = Math.cos(rad) * radius;
+    const ty = Math.sin(rad) * radius;
+    
+    textDiv.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
+    textDiv.innerHTML = `${sc.zhi}时<br><span style="font-size:9px">${sc.name}</span>`;
+    clockContainer.appendChild(textDiv);
+    textElements.push(textDiv);
+
+    const tick = document.createElement('div');
+    tick.className = 'clock-tick';
+    tick.style.transform = `rotate(${sc.angle}deg) translateY(-100px)`;
+    clockContainer.appendChild(tick);
 });
-document.getElementById('btnAll').onclick=()=>{exitSolo();};
-document.getElementById('btnNone').onclick=()=>{if(activeId)markersByM[activeId].visible=false;activeId=null;sidebar.classList.remove('split');detail.innerHTML='';M.forEach(m=>{groupsByM[m.id].visible=false;rowsById[m.id].classList.add('off');chevById[m.id].classList.remove('open');});};
+
+let currentIndex = 2; 
+let currentContinuousAngle = 60; 
+
+function renderDetail(sc) {
+    const hexColor = '#' + sc.color.toString(16).padStart(6, '0');
+    document.getElementById('detail-dot').style.background = hexColor;
+    document.getElementById('detail-title').innerText = sc.name;
+    
+    const mData = M.find(m => m.id === sc.id);
+    const listDiv = document.getElementById('detail-list');
+    listDiv.innerHTML = '';
+    
+    if (mData && mData.names) {
+        document.getElementById('detail-count').innerText = `共 ${mData.names.length} 穴`;
+        mData.names.forEach((name, idx) => {
+            const item = document.createElement('div');
+            item.className = 'acupoint';
+            item.innerHTML = `<span>${mData.id}${idx+1}</span>${name}`;
+            listDiv.appendChild(item);
+        });
+    } else {
+        document.getElementById('detail-count').innerText = '0 穴';
+    }
+}
+
+function updateUI(index, continuousAngle) {
+    const sc = SHICHEN[index];
+    const prevIndex = (index - 1 + 12) % 12;
+    const prevSc = SHICHEN[prevIndex];
+    
+    clockHand.style.transform = `translate(-50%, -100%) rotate(${continuousAngle}deg)`;
+
+    const hexColor = '#' + sc.color.toString(16).padStart(6, '0');
+    const curInfoEl = document.getElementById('cur-info');
+    curInfoEl.innerText = `${sc.name} (${sc.zhi}时)`;
+    curInfoEl.style.color = hexColor;
+
+    document.getElementById('prev-info').innerText = `${prevSc.name} (${prevSc.zhi}时)`;
+    document.getElementById('prev-info').style.color = '#' + prevSc.color.toString(16).padStart(6, '0');
+
+    textElements.forEach((el, i) => {
+        el.classList.remove('active', 'prev');
+        if(i === index) {
+            el.classList.add('active');
+            el.style.setProperty('--active-color', hexColor);
+        } else if (i === prevIndex) {
+            el.classList.add('prev');
+        }
+    });
+
+    M.forEach(m => {
+        const group = groupsByM[m.id];
+        if (m.id === sc.id) {
+            group.children.forEach(child => {
+                if(child.material.map) child.material.opacity = 1.0;
+                else child.material.opacity = 0;
+            });
+        } else if (m.id === prevSc.id) {
+            group.children.forEach(child => {
+                if(child.material.map) child.material.opacity = 0;
+                else child.material.opacity = 0.6;
+            });
+        } else {
+            group.children.forEach(child => {
+                if(child.material.map) child.material.opacity = 0;
+                else child.material.opacity = 0;
+            });
+        }
+    });
+
+    renderDetail(sc);
+}
+
+let isDraggingClock = false;
+let lastMouseAngle = 0;
+let totalAngleRotated = 60; 
+
+function getMouseAngle(clientX, clientY) {
+    const rect = clockContainer.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    angle = angle + 90; 
+    return angle;
+}
+
+function handleDrag(clientX, clientY) {
+    const curAngle = getMouseAngle(clientX, clientY);
+    let delta = curAngle - lastMouseAngle;
+
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+
+    totalAngleRotated += delta;
+    lastMouseAngle = curAngle;
+
+    clockHand.style.transform = `translate(-50%, -100%) rotate(${totalAngleRotated}deg)`;
+
+    let norm = totalAngleRotated % 360;
+    if (norm < 0) norm += 360;
+
+    let idx = Math.round(norm / 30) % 12;
+
+    if (idx !== currentIndex) {
+        currentIndex = idx;
+        updateUI(currentIndex, totalAngleRotated);
+    }
+}
+
+clockContainer.addEventListener('mousedown', (e) => {
+    isDraggingClock = true;
+    lastMouseAngle = getMouseAngle(e.clientX, e.clientY);
+    totalAngleRotated = currentIndex * 30; 
+});
+
+window.addEventListener('mousemove', (e) => {
+    if(isDraggingClock) handleDrag(e.clientX, e.clientY);
+});
+
+window.addEventListener('mouseup', () => { isDraggingClock = false; });
+
+clockContainer.addEventListener('touchstart', (e) => {
+    isDraggingClock = true;
+    lastMouseAngle = getMouseAngle(e.touches[0].clientX, e.touches[0].clientY);
+    totalAngleRotated = currentIndex * 30;
+}, {passive: true});
+
+window.addEventListener('touchmove', (e) => {
+    if(isDraggingClock) handleDrag(e.touches[0].clientX, e.touches[0].clientY);
+}, {passive: true});
+
+window.addEventListener('touchend', () => { isDraggingClock = false; });
+
+clockContainer.addEventListener('wheel', (e) => {
+    if(e.deltaY > 0) totalAngleRotated += 30;
+    else totalAngleRotated -= 30;
+    
+    let norm = totalAngleRotated % 360;
+    if(norm < 0) norm += 360;
+    currentIndex = Math.round(norm / 30) % 12;
+    updateUI(currentIndex, totalAngleRotated);
+    e.preventDefault();
+}, {passive: false});
+
+const clock = new THREE.Clock();
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    const sc = SHICHEN[currentIndex];
+    if(flowTextures[sc.id]) {
+        flowTextures[sc.id].forEach(tex => {
+            tex.offset.x -= 0.015; 
+        });
+    }
+    
+    renderer.render(scene,camera);
+}
+
 resize();
-(function loop(){requestAnimationFrame(loop);renderer.render(scene,camera);})();
+updateUI(2, 60); 
+animate();
 </script>
 </body>
 </html>
